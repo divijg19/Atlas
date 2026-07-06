@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/divijg19/GH-Analyzer/internal/signals"
 )
@@ -82,7 +84,10 @@ func analyzeUser(username string) (signals.Report, error) {
 		return signals.Report{}, fmt.Errorf("missing GitHub username")
 	}
 
-	repos, err := signals.FetchRepos(username)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	repos, err := signals.FetchRepos(ctx, username)
 	if err != nil {
 		return signals.Report{}, err
 	}

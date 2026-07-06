@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"os"
@@ -191,7 +192,7 @@ func TestSearchLiveJSONOutput(t *testing.T) {
 		loadLiveDataset = originalLoadLiveDataset
 	})
 
-	loadLiveDataset = func(query string) (indexpkg.Index, error) {
+	loadLiveDataset = func(ctx context.Context, query string) (indexpkg.Index, error) {
 		return indexpkg.Index{Profiles: []indexpkg.Profile{
 			{
 				Username: "alice",
@@ -227,7 +228,7 @@ func TestSearchLiveNoCandidates(t *testing.T) {
 		loadLiveDataset = originalLoadLiveDataset
 	})
 
-	loadLiveDataset = func(query string) (indexpkg.Index, error) {
+	loadLiveDataset = func(ctx context.Context, query string) (indexpkg.Index, error) {
 		return indexpkg.Index{}, nil
 	}
 

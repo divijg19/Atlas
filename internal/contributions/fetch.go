@@ -1,6 +1,7 @@
 package contributions
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -16,17 +17,17 @@ type searchResponse struct {
 	TotalCount int `json:"total_count"`
 }
 
-func FetchContributions(username string) (*Summary, error) {
+func FetchContributions(ctx context.Context, username string) (*Summary, error) {
 	if username == "" {
 		return nil, fmt.Errorf("username is required")
 	}
 
-	prCount, err := searchCount(username + "+type:pr")
+	prCount, err := searchCount(ctx, username+"+type:pr")
 	if err != nil {
 		return nil, fmt.Errorf("fetch pull requests: %w", err)
 	}
 
-	issueCount, err := searchCount(username + "+type:issue")
+	issueCount, err := searchCount(ctx, username+"+type:issue")
 	if err != nil {
 		return nil, fmt.Errorf("fetch issues: %w", err)
 	}
@@ -38,15 +39,13 @@ func FetchContributions(username string) (*Summary, error) {
 	}, nil
 }
 
-func searchCount(query string) (int, error) {
-	url := githubSearchIssuesURL(query)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+func searchCount(ctx context.Context, query string) (int, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, githubSearchIssuesURL(query), nil)
 	if err != nil {
 		return 0, err
 	}
-	github.SetHeaders(req)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := github.Do(ctx, req)
 	if err != nil {
 		return 0, err
 	}

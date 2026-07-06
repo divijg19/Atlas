@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/divijg19/GH-Analyzer/internal/engine"
 	searchpkg "github.com/divijg19/GH-Analyzer/internal/search"
@@ -56,7 +58,9 @@ func runSearch(args []string) error {
 	liveCandidateCount := 0
 
 	if liveMode {
-		idx, err := loadLiveDataset(input)
+		ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+		defer cancel()
+		idx, err := loadLiveDataset(ctx, input)
 		if err != nil {
 			return err
 		}

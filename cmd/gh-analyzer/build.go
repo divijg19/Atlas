@@ -2,10 +2,12 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	indexpkg "github.com/divijg19/GH-Analyzer/internal/index"
 	"github.com/divijg19/GH-Analyzer/internal/storage"
@@ -31,7 +33,10 @@ func runBuild(args []string) error {
 		return err
 	}
 
-	indexData, err := indexpkg.Build(usernames)
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	indexData, err := indexpkg.Build(ctx, usernames)
 	if err != nil {
 		return err
 	}

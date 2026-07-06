@@ -1,6 +1,7 @@
 package index
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/divijg19/GH-Analyzer/internal/signals"
 )
 
-func Build(usernames []string) (Index, error) {
+func Build(ctx context.Context, usernames []string) (Index, error) {
 	idx := Index{
 		Profiles: make([]Profile, 0, len(usernames)),
 	}
@@ -20,19 +21,19 @@ func Build(usernames []string) (Index, error) {
 			continue
 		}
 
-		repos, err := signals.FetchRepos(username)
+		repos, err := signals.FetchRepos(ctx, username)
 		if err != nil {
 			return Index{}, fmt.Errorf("fetch repos for %q: %w", username, err)
 		}
 
 		facts := signals.FromRepos(repos)
 
-		meta, err := profile.FetchUserMetadata(username)
+		meta, err := profile.FetchUserMetadata(ctx, username)
 		if err != nil {
 			return Index{}, fmt.Errorf("fetch metadata for %q: %w", username, err)
 		}
 
-		contribSummary, err := contributions.FetchContributions(username)
+		contribSummary, err := contributions.FetchContributions(ctx, username)
 		if err != nil {
 			return Index{}, fmt.Errorf("fetch contributions for %q: %w", username, err)
 		}

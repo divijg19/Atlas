@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/divijg19/GH-Analyzer/internal/engine"
 	"github.com/divijg19/GH-Analyzer/internal/presets"
+	searchpkg "github.com/divijg19/GH-Analyzer/internal/search"
 )
 
 var andSplitter = regexp.MustCompile(`(?i)\s+AND\s+`)
@@ -53,21 +53,21 @@ func runQuery(args []string) error {
 	}
 
 	if *consistency >= 0 {
-		value, err := normalizeThreshold(*consistency)
+		value, err := searchpkg.NormalizeThreshold(*consistency)
 		if err != nil {
 			return fmt.Errorf("invalid --consistency: %w", err)
 		}
 		conditions = append(conditions, engine.Condition{Signal: "consistency", Operator: ">=", Value: value})
 	}
 	if *ownership >= 0 {
-		value, err := normalizeThreshold(*ownership)
+		value, err := searchpkg.NormalizeThreshold(*ownership)
 		if err != nil {
 			return fmt.Errorf("invalid --ownership: %w", err)
 		}
 		conditions = append(conditions, engine.Condition{Signal: "ownership", Operator: ">=", Value: value})
 	}
 	if *depth >= 0 {
-		value, err := normalizeThreshold(*depth)
+		value, err := searchpkg.NormalizeThreshold(*depth)
 		if err != nil {
 			return fmt.Errorf("invalid --depth: %w", err)
 		}
@@ -123,17 +123,6 @@ func runQuery(args []string) error {
 	return nil
 }
 
-func normalizeThreshold(value float64) (float64, error) {
-	if value > 1 {
-		value = value / 100
-	}
-	if value < 0 || value > 1 {
-		return 0, fmt.Errorf("must be between 0 and 1 (or 0 to 100)")
-	}
-
-	return value, nil
-}
-
 func conditionsFromPreset(name string) ([]engine.Condition, error) {
 	presetQuery, err := presets.Preset(name)
 	if err != nil {
@@ -162,7 +151,7 @@ func parseExpression(expression string) ([]engine.Condition, error) {
 			return nil, fmt.Errorf("invalid condition expression: empty condition around AND")
 		}
 
-		condition, err := parseCondition(trimmed)
+		condition, err := searchpkg.ParseCondition(trimmed)
 		if err != nil {
 			return nil, err
 		}
@@ -173,48 +162,5 @@ func parseExpression(expression string) ([]engine.Condition, error) {
 }
 
 func parseCondition(raw string) (engine.Condition, error) {
-	text := strings.TrimSpace(raw)
-	operators := []string{">=", "<=", ">", "<"}
-
-	for _, operator := range operators {
-		idx := strings.Index(text, operator)
-		if idx < 0 {
-			continue
-		}
-
-		signal := strings.ToLower(strings.TrimSpace(text[:idx]))
-		if signal == "" {
-			return engine.Condition{}, fmt.Errorf("invalid condition %q: missing signal before operator", raw)
-		}
-		if !isAllowedSignal(signal) {
-			return engine.Condition{}, fmt.Errorf("invalid signal %q; expected consistency, ownership, depth, or activity", signal)
-		}
-
-		valueText := strings.TrimSpace(text[idx+len(operator):])
-		if valueText == "" {
-			return engine.Condition{}, fmt.Errorf("invalid condition %q: missing value after operator", raw)
-		}
-		value, err := strconv.ParseFloat(valueText, 64)
-		if err != nil {
-			return engine.Condition{}, fmt.Errorf("invalid condition %q: value must be a number", raw)
-		}
-
-		normalized, err := normalizeThreshold(value)
-		if err != nil {
-			return engine.Condition{}, fmt.Errorf("invalid condition %q: %w", raw, err)
-		}
-
-		return engine.Condition{Signal: signal, Operator: operator, Value: normalized}, nil
-	}
-
-	return engine.Condition{}, fmt.Errorf("invalid condition %q; supported operators are >, >=, <, <=", raw)
-}
-
-func isAllowedSignal(signal string) bool {
-	switch signal {
-	case "consistency", "ownership", "depth", "activity":
-		return true
-	default:
-		return false
-	}
+	return searchpkg.ParseCondition(raw)
 }

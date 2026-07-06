@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -23,19 +24,17 @@ var githubUserURL = func(username string) string {
 	return fmt.Sprintf("https://api.github.com/users/%s", username)
 }
 
-func FetchUserMetadata(username string) (*UserMetadata, error) {
+func FetchUserMetadata(ctx context.Context, username string) (*UserMetadata, error) {
 	if username == "" {
 		return nil, fmt.Errorf("username is required")
 	}
 
-	url := githubUserURL(username)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, githubUserURL(username), nil)
 	if err != nil {
 		return nil, err
 	}
-	github.SetHeaders(req)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := github.Do(ctx, req)
 	if err != nil {
 		return nil, err
 	}
