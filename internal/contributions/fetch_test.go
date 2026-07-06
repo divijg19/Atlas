@@ -1,6 +1,7 @@
 package contributions
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -35,7 +36,7 @@ func TestFetchContributionsSuccess(t *testing.T) {
 	}
 	defer func() { githubSearchIssuesURL = originalURL }()
 
-	summary, err := FetchContributions("testuser")
+	summary, err := FetchContributions(context.Background(), "testuser")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -73,7 +74,7 @@ func TestFetchContributionsEmpty(t *testing.T) {
 	}
 	defer func() { githubSearchIssuesURL = originalURL }()
 
-	summary, err := FetchContributions("emptyuser")
+	summary, err := FetchContributions(context.Background(), "emptyuser")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -105,7 +106,7 @@ func TestFetchContributionsNotFound(t *testing.T) {
 	}
 	defer func() { githubSearchIssuesURL = originalURL }()
 
-	_, err := FetchContributions("nonexistent")
+	_, err := FetchContributions(context.Background(), "nonexistent")
 	if err == nil {
 		t.Fatal("expected error for 404, got nil")
 	}
@@ -123,7 +124,7 @@ func TestFetchContributionsServerError(t *testing.T) {
 	}
 	defer func() { githubSearchIssuesURL = originalURL }()
 
-	_, err := FetchContributions("testuser")
+	_, err := FetchContributions(context.Background(), "testuser")
 	if err == nil {
 		t.Fatal("expected error for 500, got nil")
 	}
@@ -143,14 +144,14 @@ func TestFetchContributionsBadJSON(t *testing.T) {
 	}
 	defer func() { githubSearchIssuesURL = originalURL }()
 
-	_, err := FetchContributions("testuser")
+	_, err := FetchContributions(context.Background(), "testuser")
 	if err == nil {
 		t.Fatal("expected error for bad JSON, got nil")
 	}
 }
 
 func TestFetchContributionsEmptyUsername(t *testing.T) {
-	_, err := FetchContributions("")
+	_, err := FetchContributions(context.Background(), "")
 	if err == nil {
 		t.Fatal("expected error for empty username, got nil")
 	}
@@ -178,7 +179,7 @@ func TestFetchContributionsFirstCallFailsSecondSucceeds(t *testing.T) {
 	}
 	defer func() { githubSearchIssuesURL = originalURL }()
 
-	_, err := FetchContributions("testuser")
+	_, err := FetchContributions(context.Background(), "testuser")
 	if err == nil {
 		t.Fatal("expected error when first call fails")
 	}

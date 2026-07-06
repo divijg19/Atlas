@@ -1,6 +1,7 @@
 package signals
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -287,19 +288,17 @@ func signalToScore(value float64) int {
 	return int(math.Round(scaled))
 }
 
-func FetchRepos(username string) ([]Repo, error) {
+func FetchRepos(ctx context.Context, username string) ([]Repo, error) {
 	if username == "" {
 		return nil, fmt.Errorf("username is required")
 	}
 
-	url := fmt.Sprintf("https://api.github.com/users/%s/repos", username)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://api.github.com/users/%s/repos", username), nil)
 	if err != nil {
 		return nil, err
 	}
-	github.SetHeaders(req)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := github.Do(ctx, req)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -37,7 +38,7 @@ func TestFetchUserMetadataSuccess(t *testing.T) {
 	}
 	defer func() { githubUserURL = originalURL }()
 
-	meta, err := FetchUserMetadata("octocat")
+	meta, err := FetchUserMetadata(context.Background(), "octocat")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -92,7 +93,7 @@ func TestFetchUserMetadataEmptyFields(t *testing.T) {
 	}
 	defer func() { githubUserURL = originalURL }()
 
-	meta, err := FetchUserMetadata("testuser")
+	meta, err := FetchUserMetadata(context.Background(), "testuser")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -128,7 +129,7 @@ func TestFetchUserMetadataBadJSON(t *testing.T) {
 	}
 	defer func() { githubUserURL = originalURL }()
 
-	_, err := FetchUserMetadata("testuser")
+	_, err := FetchUserMetadata(context.Background(), "testuser")
 	if err == nil {
 		t.Fatal("expected error for bad JSON, got nil")
 	}
@@ -150,14 +151,14 @@ func TestFetchUserMetadataNotFound(t *testing.T) {
 	}
 	defer func() { githubUserURL = originalURL }()
 
-	_, err := FetchUserMetadata("nonexistent")
+	_, err := FetchUserMetadata(context.Background(), "nonexistent")
 	if err == nil {
 		t.Fatal("expected error for 404, got nil")
 	}
 }
 
 func TestFetchUserMetadataEmptyUsername(t *testing.T) {
-	_, err := FetchUserMetadata("")
+	_, err := FetchUserMetadata(context.Background(), "")
 	if err == nil {
 		t.Fatal("expected error for empty username, got nil")
 	}
@@ -175,7 +176,7 @@ func TestFetchUserMetadataServerError(t *testing.T) {
 	}
 	defer func() { githubUserURL = originalURL }()
 
-	_, err := FetchUserMetadata("testuser")
+	_, err := FetchUserMetadata(context.Background(), "testuser")
 	if err == nil {
 		t.Fatal("expected error for 500, got nil")
 	}
@@ -203,7 +204,7 @@ func TestFetchUserMetadataBadCreatedAt(t *testing.T) {
 	}
 	defer func() { githubUserURL = originalURL }()
 
-	meta, err := FetchUserMetadata("testuser")
+	meta, err := FetchUserMetadata(context.Background(), "testuser")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

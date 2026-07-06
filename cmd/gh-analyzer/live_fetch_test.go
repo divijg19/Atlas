@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/divijg19/GH-Analyzer/internal/contributions"
+	"github.com/divijg19/GH-Analyzer/internal/live"
 	"github.com/divijg19/GH-Analyzer/internal/signals"
 )
 
@@ -31,7 +33,7 @@ func TestBuildLiveIndexSuccess(t *testing.T) {
 	restore := setupLiveTestGlobals(server.URL + "/search/repositories")
 	defer restore()
 
-	fetchReposUser = func(username string) ([]signals.Repo, error) {
+	live.FetchReposFn = func(ctx context.Context, username string) ([]signals.Repo, error) {
 		return []signals.Repo{{
 			Name:      username + "-repo",
 			Fork:      false,
@@ -40,7 +42,8 @@ func TestBuildLiveIndexSuccess(t *testing.T) {
 		}}, nil
 	}
 
-	idx, err := buildLiveIndex("backend")
+	ctx := context.Background()
+	idx, err := buildLiveIndex(ctx, "backend")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -63,7 +66,8 @@ func TestFetchLiveUsernamesEmptyResponse(t *testing.T) {
 	restore := setupLiveTestGlobals(server.URL + "/search/repositories")
 	defer restore()
 
-	usernames, err := fetchLiveUsernames("backend")
+	ctx := context.Background()
+	usernames, err := fetchLiveUsernames(ctx, "backend")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -71,7 +75,7 @@ func TestFetchLiveUsernamesEmptyResponse(t *testing.T) {
 		t.Fatalf("expected no usernames, got %d", len(usernames))
 	}
 
-	idx, err := buildLiveIndex("backend")
+	idx, err := buildLiveIndex(ctx, "backend")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -89,7 +93,7 @@ func TestBuildLiveIndexPartialFailures(t *testing.T) {
 	restore := setupLiveTestGlobals(server.URL + "/search/repositories")
 	defer restore()
 
-	fetchReposUser = func(username string) ([]signals.Repo, error) {
+	live.FetchReposFn = func(ctx context.Context, username string) ([]signals.Repo, error) {
 		if username == "bob" {
 			return nil, fmt.Errorf("fetch failed")
 		}
@@ -102,7 +106,8 @@ func TestBuildLiveIndexPartialFailures(t *testing.T) {
 		}}, nil
 	}
 
-	idx, err := buildLiveIndex("backend")
+	ctx := context.Background()
+	idx, err := buildLiveIndex(ctx, "backend")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -132,13 +137,14 @@ func TestFetchLiveUsernamesLimitEnforced(t *testing.T) {
 	restore := setupLiveTestGlobals(server.URL + "/search/repositories")
 	defer restore()
 
-	usernames, err := fetchLiveUsernames("backend")
+	ctx := context.Background()
+	usernames, err := fetchLiveUsernames(ctx, "backend")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(usernames) != maxLiveUsers {
-		t.Fatalf("expected %d usernames, got %d", maxLiveUsers, len(usernames))
+	if len(usernames) != live.MaxUsers {
+		t.Fatalf("expected %d usernames, got %d", live.MaxUsers, len(usernames))
 	}
 	if usernames[0] != "user01" || usernames[len(usernames)-1] != "user20" {
 		t.Fatalf("unexpected limited range: first=%q last=%q", usernames[0], usernames[len(usernames)-1])
@@ -155,7 +161,8 @@ func TestFetchLiveUsernamesAPIFailure(t *testing.T) {
 	restore := setupLiveTestGlobals(server.URL + "/search/repositories")
 	defer restore()
 
-	_, err := fetchLiveUsernames("backend")
+	ctx := context.Background()
+	_, err := fetchLiveUsernames(ctx, "backend")
 	if err == nil {
 		t.Fatal("expected API failure error")
 	}
@@ -165,24 +172,21 @@ func TestFetchLiveUsernamesAPIFailure(t *testing.T) {
 }
 
 func setupLiveTestGlobals(searchURL string) func() {
-	originalURL := liveRepoSearchURL
-	originalClient := liveHTTPClient
-	originalFetchRepos := fetchReposUser
-	originalFetchContribs := fetchContributionsUser
+	originalURL := live.RepoSearchURL
+	originalFetchRepos := live.FetchReposFn
+	originalFetchContribs := live.FetchContributionsFn
 
-	liveRepoSearchURL = searchURL
-	liveHTTPClient = http.DefaultClient
-	fetchReposUser = func(username string) ([]signals.Repo, error) {
+	live.RepoSearchURL = searchURL
+	live.FetchReposFn = func(ctx context.Context, username string) ([]signals.Repo, error) {
 		return nil, nil
 	}
-	fetchContributionsUser = func(username string) (*contributions.Summary, error) {
+	live.FetchContributionsFn = func(ctx context.Context, username string) (*contributions.Summary, error) {
 		return &contributions.Summary{}, nil
 	}
 
 	return func() {
-		liveRepoSearchURL = originalURL
-		liveHTTPClient = originalClient
-		fetchReposUser = originalFetchRepos
-		fetchContributionsUser = originalFetchContribs
+		live.RepoSearchURL = originalURL
+		live.FetchReposFn = originalFetchRepos
+		live.FetchContributionsFn = originalFetchContribs
 	}
 }

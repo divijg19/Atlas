@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/divijg19/GH-Analyzer/internal/engine"
 	indexpkg "github.com/divijg19/GH-Analyzer/internal/index"
@@ -87,7 +89,10 @@ func analyzeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	repos, err := signals.FetchRepos(username)
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	defer cancel()
+
+	repos, err := signals.FetchRepos(ctx, username)
 	if err != nil {
 		var githubAPIError signals.GitHubAPIError
 		if errors.As(err, &githubAPIError) {
@@ -150,7 +155,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 
 	if liveMode {
 		mode = "live"
-		liveIndex, err := buildLiveSearchIndex(query)
+		liveIndex, err := buildLiveSearchIndex(r.Context(), query)
 		if err != nil {
 			writeJSONError(w, http.StatusBadGateway, "failed to fetch GitHub data")
 			return

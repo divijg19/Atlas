@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -85,7 +86,7 @@ func TestSearchHandlerDatasetContract(t *testing.T) {
 func TestSearchHandlerLiveModeEmptyCandidates(t *testing.T) {
 	restore := overrideServerSearchDependencies(
 		loadSearchDataset,
-		func(query string) (indexpkg.Index, error) {
+		func(ctx context.Context, query string) (indexpkg.Index, error) {
 			return indexpkg.Index{}, nil
 		},
 		func(idx indexpkg.Index, input string) ([]engine.Result, error) {
@@ -119,7 +120,7 @@ func TestSearchHandlerLiveModeEmptyCandidates(t *testing.T) {
 func TestSearchHandlerLiveFetchFailure(t *testing.T) {
 	restore := overrideServerSearchDependencies(
 		loadSearchDataset,
-		func(query string) (indexpkg.Index, error) {
+		func(ctx context.Context, query string) (indexpkg.Index, error) {
 			return indexpkg.Index{}, errors.New("boom")
 		},
 		runSearchQuery,
@@ -146,7 +147,7 @@ func TestSearchHandlerLiveFetchFailure(t *testing.T) {
 
 func overrideServerSearchDependencies(
 	load func(path string) (indexpkg.Index, error),
-	live func(query string) (indexpkg.Index, error),
+	live func(ctx context.Context, query string) (indexpkg.Index, error),
 	searchFn func(idx indexpkg.Index, input string) ([]engine.Result, error),
 ) func() {
 	originalLoad := loadSearchDataset
