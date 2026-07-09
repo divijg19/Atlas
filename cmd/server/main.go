@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/divijg19/GH-Analyzer/internal/acquisition"
 	"github.com/divijg19/GH-Analyzer/internal/engine"
 	indexpkg "github.com/divijg19/GH-Analyzer/internal/index"
 	searchpkg "github.com/divijg19/GH-Analyzer/internal/search"
@@ -92,9 +93,9 @@ func analyzeHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
 
-	repos, err := signals.FetchRepos(ctx, username)
+	repoDTOs, err := acquisition.NewClient().FetchRepos(ctx, username)
 	if err != nil {
-		var githubAPIError signals.GitHubAPIError
+		var githubAPIError acquisition.APIError
 		if errors.As(err, &githubAPIError) {
 			switch githubAPIError.StatusCode {
 			case http.StatusNotFound:
@@ -114,6 +115,8 @@ func analyzeHandler(w http.ResponseWriter, r *http.Request) {
 		writeJSONError(w, http.StatusBadGateway, "unable to reach GitHub API")
 		return
 	}
+
+	repos := acquisition.NormalizeRepos(repoDTOs)
 
 	signalValues := signals.ExtractSignals(repos)
 	scores := signals.ScoreSignals(signalValues)

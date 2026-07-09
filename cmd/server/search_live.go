@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 
-	"github.com/divijg19/GH-Analyzer/internal/live"
 	indexpkg "github.com/divijg19/GH-Analyzer/internal/index"
+	"github.com/divijg19/GH-Analyzer/internal/live"
 )
 
 func buildLiveIndexForServer(ctx context.Context, query string) (indexpkg.Index, error) {

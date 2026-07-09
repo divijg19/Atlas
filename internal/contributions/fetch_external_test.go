@@ -1,4 +1,4 @@
-package contributions
+package contributions_test
 
 import (
 	"context"
@@ -6,7 +6,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/divijg19/GH-Analyzer/internal/acquisition"
 )
+
+func newClient(baseURL string) *acquisition.Client {
+	return acquisition.NewClientAt(baseURL)
+}
 
 func TestFetchContributionsSuccess(t *testing.T) {
 	callCount := 0
@@ -30,31 +36,22 @@ func TestFetchContributionsSuccess(t *testing.T) {
 	}))
 	defer server.Close()
 
-	originalURL := githubSearchIssuesURL
-	githubSearchIssuesURL = func(query string) string {
-		return server.URL + "?" + "q=" + query + "&per_page=1"
-	}
-	defer func() { githubSearchIssuesURL = originalURL }()
-
-	summary, err := FetchContributions(context.Background(), "testuser")
+	dto, err := newClient(server.URL).FetchContributions(context.Background(), "testuser")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if summary == nil {
-		t.Fatal("expected summary, got nil")
+	if dto == nil {
+		t.Fatal("expected dto, got nil")
 	}
 
 	if callCount != 2 {
 		t.Fatalf("expected 2 API calls, got %d", callCount)
 	}
-	if summary.TotalContributions != 150 {
-		t.Fatalf("TotalContributions = %d, want 150", summary.TotalContributions)
+	if dto.PullRequests != 85 {
+		t.Fatalf("PullRequests = %d, want 85", dto.PullRequests)
 	}
-	if summary.TotalPullRequests != 85 {
-		t.Fatalf("TotalPullRequests = %d, want 85", summary.TotalPullRequests)
-	}
-	if summary.IssuesOpened != 65 {
-		t.Fatalf("IssuesOpened = %d, want 65", summary.IssuesOpened)
+	if dto.Issues != 65 {
+		t.Fatalf("Issues = %d, want 65", dto.Issues)
 	}
 }
 
@@ -68,27 +65,15 @@ func TestFetchContributionsEmpty(t *testing.T) {
 	}))
 	defer server.Close()
 
-	originalURL := githubSearchIssuesURL
-	githubSearchIssuesURL = func(query string) string {
-		return server.URL + "?" + "q=" + query + "&per_page=1"
-	}
-	defer func() { githubSearchIssuesURL = originalURL }()
-
-	summary, err := FetchContributions(context.Background(), "emptyuser")
+	dto, err := newClient(server.URL).FetchContributions(context.Background(), "emptyuser")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if summary == nil {
-		t.Fatal("expected summary, got nil")
+	if dto == nil {
+		t.Fatal("expected dto, got nil")
 	}
-	if summary.TotalContributions != 0 {
-		t.Fatalf("TotalContributions = %d, want 0", summary.TotalContributions)
-	}
-	if summary.TotalPullRequests != 0 {
-		t.Fatalf("TotalPullRequests = %d, want 0", summary.TotalPullRequests)
-	}
-	if summary.IssuesOpened != 0 {
-		t.Fatalf("IssuesOpened = %d, want 0", summary.IssuesOpened)
+	if dto.PullRequests != 0 || dto.Issues != 0 {
+		t.Fatalf("expected zero counts, got %+v", dto)
 	}
 }
 
@@ -100,13 +85,7 @@ func TestFetchContributionsNotFound(t *testing.T) {
 	}))
 	defer server.Close()
 
-	originalURL := githubSearchIssuesURL
-	githubSearchIssuesURL = func(query string) string {
-		return server.URL + "?" + "q=" + query + "&per_page=1"
-	}
-	defer func() { githubSearchIssuesURL = originalURL }()
-
-	_, err := FetchContributions(context.Background(), "nonexistent")
+	_, err := newClient(server.URL).FetchContributions(context.Background(), "nonexistent")
 	if err == nil {
 		t.Fatal("expected error for 404, got nil")
 	}
@@ -118,13 +97,7 @@ func TestFetchContributionsServerError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	originalURL := githubSearchIssuesURL
-	githubSearchIssuesURL = func(query string) string {
-		return server.URL + "?" + "q=" + query + "&per_page=1"
-	}
-	defer func() { githubSearchIssuesURL = originalURL }()
-
-	_, err := FetchContributions(context.Background(), "testuser")
+	_, err := newClient(server.URL).FetchContributions(context.Background(), "testuser")
 	if err == nil {
 		t.Fatal("expected error for 500, got nil")
 	}
@@ -138,20 +111,14 @@ func TestFetchContributionsBadJSON(t *testing.T) {
 	}))
 	defer server.Close()
 
-	originalURL := githubSearchIssuesURL
-	githubSearchIssuesURL = func(query string) string {
-		return server.URL + "?" + "q=" + query + "&per_page=1"
-	}
-	defer func() { githubSearchIssuesURL = originalURL }()
-
-	_, err := FetchContributions(context.Background(), "testuser")
+	_, err := newClient(server.URL).FetchContributions(context.Background(), "testuser")
 	if err == nil {
 		t.Fatal("expected error for bad JSON, got nil")
 	}
 }
 
 func TestFetchContributionsEmptyUsername(t *testing.T) {
-	_, err := FetchContributions(context.Background(), "")
+	_, err := newClient("http://example.invalid").FetchContributions(context.Background(), "")
 	if err == nil {
 		t.Fatal("expected error for empty username, got nil")
 	}
@@ -173,13 +140,7 @@ func TestFetchContributionsFirstCallFailsSecondSucceeds(t *testing.T) {
 	}))
 	defer server.Close()
 
-	originalURL := githubSearchIssuesURL
-	githubSearchIssuesURL = func(query string) string {
-		return server.URL + "?" + "q=" + query + "&per_page=1"
-	}
-	defer func() { githubSearchIssuesURL = originalURL }()
-
-	_, err := FetchContributions(context.Background(), "testuser")
+	_, err := newClient(server.URL).FetchContributions(context.Background(), "testuser")
 	if err == nil {
 		t.Fatal("expected error when first call fails")
 	}

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/divijg19/GH-Analyzer/internal/acquisition"
 	"github.com/divijg19/GH-Analyzer/internal/signals"
 )
 
@@ -87,10 +88,12 @@ func analyzeUser(username string) (signals.Report, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	repos, err := signals.FetchRepos(ctx, username)
+	repoDTOs, err := acquisition.NewClient().FetchRepos(ctx, username)
 	if err != nil {
 		return signals.Report{}, err
 	}
+
+	repos := acquisition.NormalizeRepos(repoDTOs)
 
 	signalValues := signals.ExtractSignals(repos)
 	scores := signals.ScoreSignals(signalValues)

@@ -1,16 +1,11 @@
 package signals
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"math"
-	"net/http"
 	"sort"
 	"strings"
 	"time"
-
-	"github.com/divijg19/GH-Analyzer/internal/github"
 )
 
 const (
@@ -286,44 +281,4 @@ func signalToScore(value float64) int {
 
 	scaled := value * scoreScale
 	return int(math.Round(scaled))
-}
-
-func FetchRepos(ctx context.Context, username string) ([]Repo, error) {
-	if username == "" {
-		return nil, fmt.Errorf("username is required")
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://api.github.com/users/%s/repos", username), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := github.Do(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		var githubError struct {
-			Message string `json:"message"`
-		}
-
-		message := resp.Status
-		if err := json.NewDecoder(resp.Body).Decode(&githubError); err == nil && strings.TrimSpace(githubError.Message) != "" {
-			message = strings.TrimSpace(githubError.Message)
-		}
-
-		return nil, GitHubAPIError{
-			StatusCode: resp.StatusCode,
-			Message:    message,
-		}
-	}
-
-	var repos []Repo
-	if err := json.NewDecoder(resp.Body).Decode(&repos); err != nil {
-		return nil, err
-	}
-
-	return repos, nil
 }
