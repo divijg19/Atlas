@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/divijg19/GH-Analyzer/internal/contributions"
-	"github.com/divijg19/GH-Analyzer/internal/profile"
+	"github.com/divijg19/GH-Analyzer/internal/acquisition"
 	"github.com/divijg19/GH-Analyzer/internal/signals"
 )
 
@@ -15,28 +14,35 @@ func Build(ctx context.Context, usernames []string) (Index, error) {
 		Profiles: make([]Profile, 0, len(usernames)),
 	}
 
+	client := acquisition.NewClient()
+
 	for _, rawUsername := range usernames {
 		username := strings.TrimSpace(rawUsername)
 		if username == "" {
 			continue
 		}
 
-		repos, err := signals.FetchRepos(ctx, username)
+		repoDTOs, err := client.FetchRepos(ctx, username)
 		if err != nil {
 			return Index{}, fmt.Errorf("fetch repos for %q: %w", username, err)
 		}
 
+		repos := acquisition.NormalizeRepos(repoDTOs)
 		facts := signals.FromRepos(repos)
 
-		meta, err := profile.FetchUserMetadata(ctx, username)
+		userDTO, err := client.FetchUser(ctx, username)
 		if err != nil {
 			return Index{}, fmt.Errorf("fetch metadata for %q: %w", username, err)
 		}
 
-		contribSummary, err := contributions.FetchContributions(ctx, username)
+		meta := acquisition.NormalizeUser(userDTO)
+
+		contribDTO, err := client.FetchContributions(ctx, username)
 		if err != nil {
 			return Index{}, fmt.Errorf("fetch contributions for %q: %w", username, err)
 		}
+
+		contribSummary := acquisition.NormalizeContributions(contribDTO)
 
 		signalValues := signals.ExtractSignalsFromFacts(facts)
 		scores := signals.ScoreSignals(signalValues)

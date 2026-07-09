@@ -9,38 +9,67 @@ import (
 	"testing"
 	"time"
 
-	"github.com/divijg19/GH-Analyzer/internal/contributions"
+	"github.com/divijg19/GH-Analyzer/internal/acquisition"
 	"github.com/divijg19/GH-Analyzer/internal/live"
 	"github.com/divijg19/GH-Analyzer/internal/signals"
 )
 
-func TestBuildLiveIndexSuccess(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/search/repositories" {
-			http.NotFound(w, r)
-			return
-		}
+// mockAcquisitionClient is a test seam for the live package. It returns canned
+// data without performing network calls and satisfies the live.fetcher
+// interface.
+type mockAcquisitionClient struct {
+	repos     map[string][]signals.Repo
+	usernames []string
+}
 
-		if r.Header.Get("User-Agent") != "gh-analyzer" {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		fmt.Fprint(w, `{"items":[{"owner":{"login":"alice"}},{"owner":{"login":"bob"}},{"owner":{"login":"alice"}}]}`)
-	}))
-	defer server.Close()
-
-	restore := setupLiveTestGlobals(server.URL + "/search/repositories")
-	defer restore()
-
-	live.FetchReposFn = func(ctx context.Context, username string) ([]signals.Repo, error) {
-		return []signals.Repo{{
-			Name:      username + "-repo",
-			Fork:      false,
-			Size:      100,
-			UpdatedAt: time.Now(),
-		}}, nil
+func (m *mockAcquisitionClient) FetchReposNormalized(_ context.Context, username string) ([]signals.Repo, error) {
+	r, ok := m.repos[username]
+	if !ok {
+		return nil, context.Canceled
 	}
+	return r, nil
+}
+
+func (m *mockAcquisitionClient) FetchUser(_ context.Context, _ string) (*acquisition.UserDTO, error) {
+	return &acquisition.UserDTO{}, nil
+}
+
+func (m *mockAcquisitionClient) FetchContributions(_ context.Context, _ string) (*acquisition.ContributionsDTO, error) {
+	return &acquisition.ContributionsDTO{}, nil
+}
+
+func (m *mockAcquisitionClient) SearchRepositoryOwners(_ context.Context, _ string) ([]string, error) {
+	seen := make(map[string]struct{}, len(m.usernames))
+	out := make([]string, 0, len(m.usernames))
+	for _, u := range m.usernames {
+		if _, ok := seen[u]; ok {
+			continue
+		}
+		seen[u] = struct{}{}
+		out = append(out, u)
+	}
+	return out, nil
+}
+
+func setupLiveTestGlobals(mock *mockAcquisitionClient) func() {
+	original := live.Client
+	live.Client = mock
+	return func() {
+		live.Client = original
+	}
+}
+
+func TestBuildLiveIndexSuccess(t *testing.T) {
+	now := time.Now()
+	mock := &mockAcquisitionClient{
+		usernames: []string{"alice", "bob", "alice"},
+		repos: map[string][]signals.Repo{
+			"alice": {{Name: "alice-repo", Size: 100, UpdatedAt: now}},
+			"bob":   {{Name: "bob-repo", Size: 100, UpdatedAt: now}},
+		},
+	}
+	restore := setupLiveTestGlobals(mock)
+	defer restore()
 
 	ctx := context.Background()
 	idx, err := buildLiveIndex(ctx, "backend")
@@ -58,12 +87,8 @@ func TestBuildLiveIndexSuccess(t *testing.T) {
 }
 
 func TestFetchLiveUsernamesEmptyResponse(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, `{"items":[]}`)
-	}))
-	defer server.Close()
-
-	restore := setupLiveTestGlobals(server.URL + "/search/repositories")
+	mock := &mockAcquisitionClient{usernames: []string{}}
+	restore := setupLiveTestGlobals(mock)
 	defer restore()
 
 	ctx := context.Background()
@@ -85,26 +110,16 @@ func TestFetchLiveUsernamesEmptyResponse(t *testing.T) {
 }
 
 func TestBuildLiveIndexPartialFailures(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, `{"items":[{"owner":{"login":"alice"}},{"owner":{"login":"bob"}},{"owner":{"login":"cara"}}]}`)
-	}))
-	defer server.Close()
-
-	restore := setupLiveTestGlobals(server.URL + "/search/repositories")
-	defer restore()
-
-	live.FetchReposFn = func(ctx context.Context, username string) ([]signals.Repo, error) {
-		if username == "bob" {
-			return nil, fmt.Errorf("fetch failed")
-		}
-
-		return []signals.Repo{{
-			Name:      username + "-repo",
-			Fork:      false,
-			Size:      100,
-			UpdatedAt: time.Now(),
-		}}, nil
+	now := time.Now()
+	mock := &mockAcquisitionClient{
+		usernames: []string{"alice", "bob", "cara"},
+		repos: map[string][]signals.Repo{
+			"alice": {{Name: "alice-repo", Size: 100, UpdatedAt: now}},
+			"cara":  {{Name: "cara-repo", Size: 100, UpdatedAt: now}},
+		},
 	}
+	restore := setupLiveTestGlobals(mock)
+	defer restore()
 
 	ctx := context.Background()
 	idx, err := buildLiveIndex(ctx, "backend")
@@ -127,15 +142,17 @@ func TestFetchLiveUsernamesLimitEnforced(t *testing.T) {
 	for i := 1; i <= 25; i++ {
 		items = append(items, fmt.Sprintf(`{"owner":{"login":"user%02d"}}`, i))
 	}
-	payload := fmt.Sprintf(`{"items":[%s]}`, strings.Join(items, ","))
+	payload := `{"items":[` + strings.Join(items, ",") + `]}`
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, payload)
+		w.Write([]byte(payload))
 	}))
 	defer server.Close()
 
-	restore := setupLiveTestGlobals(server.URL + "/search/repositories")
+	restore := setupLiveTestGlobals(&mockAcquisitionClient{})
 	defer restore()
+
+	live.Client = acquisition.NewClientAt(server.URL)
 
 	ctx := context.Background()
 	usernames, err := fetchLiveUsernames(ctx, "backend")
@@ -143,8 +160,8 @@ func TestFetchLiveUsernamesLimitEnforced(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if len(usernames) != live.MaxUsers {
-		t.Fatalf("expected %d usernames, got %d", live.MaxUsers, len(usernames))
+	if len(usernames) != acquisition.MaxUsers {
+		t.Fatalf("expected %d usernames, got %d", acquisition.MaxUsers, len(usernames))
 	}
 	if usernames[0] != "user01" || usernames[len(usernames)-1] != "user20" {
 		t.Fatalf("unexpected limited range: first=%q last=%q", usernames[0], usernames[len(usernames)-1])
@@ -154,12 +171,14 @@ func TestFetchLiveUsernamesLimitEnforced(t *testing.T) {
 func TestFetchLiveUsernamesAPIFailure(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
-		fmt.Fprint(w, `{"message":"rate limit"}`)
+		w.Write([]byte(`{"message":"rate limit"}`))
 	}))
 	defer server.Close()
 
-	restore := setupLiveTestGlobals(server.URL + "/search/repositories")
+	restore := setupLiveTestGlobals(&mockAcquisitionClient{})
 	defer restore()
+
+	live.Client = acquisition.NewClientAt(server.URL)
 
 	ctx := context.Background()
 	_, err := fetchLiveUsernames(ctx, "backend")
@@ -168,25 +187,5 @@ func TestFetchLiveUsernamesAPIFailure(t *testing.T) {
 	}
 	if err.Error() != "failed to fetch GitHub data" {
 		t.Fatalf("expected canonical API error, got %q", err.Error())
-	}
-}
-
-func setupLiveTestGlobals(searchURL string) func() {
-	originalURL := live.RepoSearchURL
-	originalFetchRepos := live.FetchReposFn
-	originalFetchContribs := live.FetchContributionsFn
-
-	live.RepoSearchURL = searchURL
-	live.FetchReposFn = func(ctx context.Context, username string) ([]signals.Repo, error) {
-		return nil, nil
-	}
-	live.FetchContributionsFn = func(ctx context.Context, username string) (*contributions.Summary, error) {
-		return &contributions.Summary{}, nil
-	}
-
-	return func() {
-		live.RepoSearchURL = originalURL
-		live.FetchReposFn = originalFetchRepos
-		live.FetchContributionsFn = originalFetchContribs
 	}
 }

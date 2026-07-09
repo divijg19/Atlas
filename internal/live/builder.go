@@ -4,10 +4,24 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/divijg19/GH-Analyzer/internal/acquisition"
 	indexpkg "github.com/divijg19/GH-Analyzer/internal/index"
-	"github.com/divijg19/GH-Analyzer/internal/profile"
 	"github.com/divijg19/GH-Analyzer/internal/signals"
 )
+
+// fetcher is the acquisition surface the live pipeline depends on. It is
+// satisfied by *acquisition.Client and overridable in tests.
+type fetcher interface {
+	FetchReposNormalized(ctx context.Context, username string) ([]signals.Repo, error)
+	FetchUser(ctx context.Context, username string) (*acquisition.UserDTO, error)
+	FetchContributions(ctx context.Context, username string) (*acquisition.ContributionsDTO, error)
+	SearchRepositoryOwners(ctx context.Context, query string) ([]string, error)
+}
+
+// Client is the acquisition client used for live fetching. Tests may override
+// it with a fetcher implementation; production code uses the default
+// GitHub-backed client.
+var Client fetcher = acquisition.NewClient()
 
 // BuildLiveIndex fetches live data from GitHub for a search query and
 // returns a complete index with profiles containing signals, facts,
@@ -31,22 +45,26 @@ func BuildLiveIndex(ctx context.Context, query string) (indexpkg.Index, error) {
 }
 
 func buildLiveProfile(ctx context.Context, username string) (indexpkg.Profile, error) {
-	repos, err := FetchReposFn(ctx, username)
+	repos, err := Client.FetchReposNormalized(ctx, username)
 	if err != nil {
 		return indexpkg.Profile{}, fmt.Errorf("fetch repos for %q: %w", username, err)
 	}
 
 	facts := signals.FromRepos(repos)
 
-	meta, err := profile.FetchUserMetadata(ctx, username)
+	userDTO, err := Client.FetchUser(ctx, username)
 	if err != nil {
 		return indexpkg.Profile{}, fmt.Errorf("fetch metadata for %q: %w", username, err)
 	}
 
-	contribSummary, err := FetchContributionsFn(ctx, username)
+	meta := acquisition.NormalizeUser(userDTO)
+
+	contribDTO, err := Client.FetchContributions(ctx, username)
 	if err != nil {
 		return indexpkg.Profile{}, fmt.Errorf("fetch contributions for %q: %w", username, err)
 	}
+
+	contribSummary := acquisition.NormalizeContributions(contribDTO)
 
 	signalValues := signals.ExtractSignalsFromFacts(facts)
 	scores := signals.ScoreSignals(signalValues)

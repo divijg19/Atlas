@@ -1,4 +1,4 @@
-package profile
+package profile_test
 
 import (
 	"context"
@@ -7,7 +7,13 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/divijg19/GH-Analyzer/internal/acquisition"
 )
+
+func newClient(baseURL string) *acquisition.Client {
+	return acquisition.NewClientAt(baseURL)
+}
 
 func TestFetchUserMetadataSuccess(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -32,16 +38,15 @@ func TestFetchUserMetadataSuccess(t *testing.T) {
 	}))
 	defer server.Close()
 
-	originalURL := githubUserURL
-	githubUserURL = func(username string) string {
-		return server.URL
-	}
-	defer func() { githubUserURL = originalURL }()
-
-	meta, err := FetchUserMetadata(context.Background(), "octocat")
+	dto, err := newClient(server.URL).FetchUser(context.Background(), "octocat")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+	if dto == nil {
+		t.Fatal("expected dto, got nil")
+	}
+
+	meta := acquisition.NormalizeUser(dto)
 	if meta == nil {
 		t.Fatal("expected metadata, got nil")
 	}
@@ -87,16 +92,15 @@ func TestFetchUserMetadataEmptyFields(t *testing.T) {
 	}))
 	defer server.Close()
 
-	originalURL := githubUserURL
-	githubUserURL = func(username string) string {
-		return server.URL
-	}
-	defer func() { githubUserURL = originalURL }()
-
-	meta, err := FetchUserMetadata(context.Background(), "testuser")
+	dto, err := newClient(server.URL).FetchUser(context.Background(), "testuser")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+	if dto == nil {
+		t.Fatal("expected dto, got nil")
+	}
+
+	meta := acquisition.NormalizeUser(dto)
 	if meta == nil {
 		t.Fatal("expected metadata, got nil")
 	}
@@ -123,13 +127,7 @@ func TestFetchUserMetadataBadJSON(t *testing.T) {
 	}))
 	defer server.Close()
 
-	originalURL := githubUserURL
-	githubUserURL = func(username string) string {
-		return server.URL
-	}
-	defer func() { githubUserURL = originalURL }()
-
-	_, err := FetchUserMetadata(context.Background(), "testuser")
+	_, err := newClient(server.URL).FetchUser(context.Background(), "testuser")
 	if err == nil {
 		t.Fatal("expected error for bad JSON, got nil")
 	}
@@ -145,20 +143,14 @@ func TestFetchUserMetadataNotFound(t *testing.T) {
 	}))
 	defer server.Close()
 
-	originalURL := githubUserURL
-	githubUserURL = func(username string) string {
-		return server.URL
-	}
-	defer func() { githubUserURL = originalURL }()
-
-	_, err := FetchUserMetadata(context.Background(), "nonexistent")
+	_, err := newClient(server.URL).FetchUser(context.Background(), "nonexistent")
 	if err == nil {
 		t.Fatal("expected error for 404, got nil")
 	}
 }
 
 func TestFetchUserMetadataEmptyUsername(t *testing.T) {
-	_, err := FetchUserMetadata(context.Background(), "")
+	_, err := newClient("http://example.invalid").FetchUser(context.Background(), "")
 	if err == nil {
 		t.Fatal("expected error for empty username, got nil")
 	}
@@ -170,43 +162,19 @@ func TestFetchUserMetadataServerError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	originalURL := githubUserURL
-	githubUserURL = func(username string) string {
-		return server.URL
-	}
-	defer func() { githubUserURL = originalURL }()
-
-	_, err := FetchUserMetadata(context.Background(), "testuser")
+	_, err := newClient(server.URL).FetchUser(context.Background(), "testuser")
 	if err == nil {
 		t.Fatal("expected error for 500, got nil")
 	}
 }
 
-func TestFetchUserMetadataBadCreatedAt(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"name":       "Test User",
-			"bio":        "",
-			"location":   "",
-			"company":    "",
-			"followers":  0,
-			"following":  0,
-			"created_at": "not-a-valid-date",
-		})
-	}))
-	defer server.Close()
-
-	originalURL := githubUserURL
-	githubUserURL = func(username string) string {
-		return server.URL
-	}
-	defer func() { githubUserURL = originalURL }()
-
-	meta, err := FetchUserMetadata(context.Background(), "testuser")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+func TestNormalizeUserBadCreatedAt(t *testing.T) {
+	meta := acquisition.NormalizeUser(&acquisition.UserDTO{
+		Name:      "Test User",
+		CreatedAt: "not-a-valid-date",
+	})
+	if meta == nil {
+		t.Fatal("expected metadata, got nil")
 	}
 	if !meta.CreatedAt.IsZero() {
 		t.Fatalf("expected zero CreatedAt for bad date, got %v", meta.CreatedAt)
