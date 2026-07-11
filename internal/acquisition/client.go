@@ -16,7 +16,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/divijg19/GH-Analyzer/internal/github"
+	"github.com/divijg19/Atlas/internal/github"
 )
 
 const defaultBaseURL = "https://api.github.com"

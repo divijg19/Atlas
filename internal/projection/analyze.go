@@ -1,8 +1,19 @@
+// Package projection defines consumer-shaped, read-only views of the domain.
+//
+// It owns deterministic re-shaping and ordering for presentation (Candidate,
+// Analyze, Inspect, Search projections). It never computes overall scores,
+// penalties, or confidence — those are supplied by internal/evaluation.
+// See docs/INTELLIGENCE.md.
 package projection
 
 import (
-	"github.com/divijg19/GH-Analyzer/internal/signals"
+	"github.com/divijg19/Atlas/internal/evaluation"
+	"github.com/divijg19/Atlas/internal/signals"
 )
+
+// analyzeTopRepoLimit is the number of repositories surfaced in the
+// AnalyzeProjection's top-repos view.
+const analyzeTopRepoLimit = 3
 
 // AnalyzeProjection includes signals and penalized overall score.
 // Used for deep-dive single-user analysis.
@@ -18,15 +29,16 @@ func BuildAnalyzeProjection(username string, repos []signals.Repo) (AnalyzeProje
 	signalValues := signals.ExtractSignals(repos)
 	scores := signals.ScoreSignals(signalValues)
 
-	// Compute overall from raw scores (evaluation policy, not signal extraction)
-	overall := computeOverall(scores)
+	// Compute overall from raw scores via the evaluation layer (single owner
+	// of scoring policy).
+	overall := evaluation.OverallScore(scores)
 
 	// Apply small sample penalty
 	repoCount := len(repos)
-	overall = ApplySmallSamplePenalty(overall, repoCount)
+	overall = evaluation.ApplySmallSamplePenalty(overall, repoCount)
 
 	// Extract top repositories
-	topRepos := ExtractTopRepositories(repos, 3)
+	topRepos := ExtractTopRepositories(repos, analyzeTopRepoLimit)
 
 	return AnalyzeProjection{
 		Username: username,
@@ -34,18 +46,4 @@ func BuildAnalyzeProjection(username string, repos []signals.Repo) (AnalyzeProje
 		TopRepos: topRepos,
 		Overall:  overall,
 	}, nil
-}
-
-// computeOverall calculates the weighted overall score from raw component scores.
-// Weights: consistency 40%, ownership 30%, depth 30%.
-func computeOverall(rs signals.RawScore) int {
-	const (
-		consistencyWeight = 0.4
-		ownershipWeight   = 0.3
-		depthWeight       = 0.3
-	)
-
-	return int(float64(rs.Consistency)*consistencyWeight +
-		float64(rs.Ownership)*ownershipWeight +
-		float64(rs.Depth)*depthWeight)
 }

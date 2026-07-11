@@ -7,11 +7,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/divijg19/GH-Analyzer/internal/engine"
-	"github.com/divijg19/GH-Analyzer/internal/evaluation"
-	"github.com/divijg19/GH-Analyzer/internal/presets"
-	"github.com/divijg19/GH-Analyzer/internal/projection"
-	searchpkg "github.com/divijg19/GH-Analyzer/internal/search"
+	"github.com/divijg19/Atlas/internal/engine"
+	"github.com/divijg19/Atlas/internal/evaluation"
+	"github.com/divijg19/Atlas/internal/presets"
+	"github.com/divijg19/Atlas/internal/projection"
+	searchpkg "github.com/divijg19/Atlas/internal/search"
 )
 
 var andSplitter = regexp.MustCompile(`(?i)\s+AND\s+`)
@@ -103,7 +103,7 @@ func runQuery(args []string) error {
 		return fmt.Errorf("invalid --limit: must be >= 0")
 	}
 
-	runner := engine.New(engine.WeightedRanking{})
+	runner := engine.New(evaluation.RankingPolicy{})
 	fullQuery := engine.Query{Conditions: conditions, Limit: 0}
 	totalMatches := len(runner.Query(indexData, fullQuery))
 

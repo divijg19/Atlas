@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/divijg19/GH-Analyzer/internal/contributions"
-	"github.com/divijg19/GH-Analyzer/internal/index"
-	"github.com/divijg19/GH-Analyzer/internal/profile"
-	"github.com/divijg19/GH-Analyzer/internal/signals"
+	"github.com/divijg19/Atlas/internal/contributions"
+	"github.com/divijg19/Atlas/internal/index"
+	"github.com/divijg19/Atlas/internal/profile"
+	"github.com/divijg19/Atlas/internal/signals"
 )
 
 func TestBuildInspectProjection_DeterministicOutput(t *testing.T) {

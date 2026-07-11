@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/divijg19/GH-Analyzer/internal/engine"
-	"github.com/divijg19/GH-Analyzer/internal/evaluation"
-	"github.com/divijg19/GH-Analyzer/internal/projection"
-	searchpkg "github.com/divijg19/GH-Analyzer/internal/search"
+	"github.com/divijg19/Atlas/internal/engine"
+	"github.com/divijg19/Atlas/internal/evaluation"
+	"github.com/divijg19/Atlas/internal/projection"
+	searchpkg "github.com/divijg19/Atlas/internal/search"
 )
 
 var loadLiveDataset = buildLiveIndex

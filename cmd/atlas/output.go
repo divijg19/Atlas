@@ -6,9 +6,9 @@ import (
 	"math"
 	"sort"
 
-	"github.com/divijg19/GH-Analyzer/internal/engine"
-	indexpkg "github.com/divijg19/GH-Analyzer/internal/index"
-	"github.com/divijg19/GH-Analyzer/internal/projection"
+	"github.com/divijg19/Atlas/internal/engine"
+	indexpkg "github.com/divijg19/Atlas/internal/index"
+	"github.com/divijg19/Atlas/internal/projection"
 )
 
 func writeJSON(value any) error {

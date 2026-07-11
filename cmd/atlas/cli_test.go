@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/divijg19/GH-Analyzer/internal/engine"
-	indexpkg "github.com/divijg19/GH-Analyzer/internal/index"
-	"github.com/divijg19/GH-Analyzer/internal/storage"
+	"github.com/divijg19/Atlas/internal/engine"
+	indexpkg "github.com/divijg19/Atlas/internal/index"
+	"github.com/divijg19/Atlas/internal/storage"
 )
 
 func TestRunCLIRootHelp(t *testing.T) {
@@ -317,7 +317,7 @@ func TestRunCLIMissingDatasetErrorMessage(t *testing.T) {
 	if !strings.Contains(message, "dataset not found") {
 		t.Fatalf("expected dataset-not-found error, got %q", message)
 	}
-	if !strings.Contains(message, "Run: gh-analyzer build <usernames>") {
+	if !strings.Contains(message, "Run: atlas build <usernames>") {
 		t.Fatalf("expected actionable guidance, got %q", message)
 	}
 }

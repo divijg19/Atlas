@@ -11,13 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/divijg19/GH-Analyzer/internal/acquisition"
-	"github.com/divijg19/GH-Analyzer/internal/engine"
-	"github.com/divijg19/GH-Analyzer/internal/evaluation"
-	indexpkg "github.com/divijg19/GH-Analyzer/internal/index"
-	"github.com/divijg19/GH-Analyzer/internal/projection"
-	searchpkg "github.com/divijg19/GH-Analyzer/internal/search"
-	"github.com/divijg19/GH-Analyzer/internal/storage"
+	"github.com/divijg19/Atlas/internal/acquisition"
+	"github.com/divijg19/Atlas/internal/engine"
+	"github.com/divijg19/Atlas/internal/evaluation"
+	indexpkg "github.com/divijg19/Atlas/internal/index"
+	"github.com/divijg19/Atlas/internal/projection"
+	searchpkg "github.com/divijg19/Atlas/internal/search"
+	"github.com/divijg19/Atlas/internal/storage"
 )
 
 const (

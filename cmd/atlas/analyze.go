@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/divijg19/GH-Analyzer/internal/acquisition"
-	"github.com/divijg19/GH-Analyzer/internal/projection"
+	"github.com/divijg19/Atlas/internal/acquisition"
+	"github.com/divijg19/Atlas/internal/projection"
 )
 
 type analyzeOptions struct {

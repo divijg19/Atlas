@@ -5,7 +5,7 @@ import (
 )
 
 func TestNormalizeRepo(t *testing.T) {
-	repo := NormalizeRepo(RepoDTO{
+	repo := normalizeRepo(RepoDTO{
 		Name:      "repo1",
 		Fork:      false,
 		Size:      120,
@@ -21,7 +21,7 @@ func TestNormalizeRepo(t *testing.T) {
 }
 
 func TestNormalizeRepoEmptyTime(t *testing.T) {
-	repo := NormalizeRepo(RepoDTO{Name: "x", UpdatedAt: ""})
+	repo := normalizeRepo(RepoDTO{Name: "x", UpdatedAt: ""})
 	if !repo.UpdatedAt.IsZero() {
 		t.Errorf("expected zero time for empty timestamp, got %v", repo.UpdatedAt)
 	}

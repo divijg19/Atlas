@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/divijg19/GH-Analyzer/internal/acquisition"
+	"github.com/divijg19/Atlas/internal/acquisition"
 )
 
 func newClient(baseURL string) *acquisition.Client {
@@ -20,8 +20,8 @@ func TestFetchUserMetadataSuccess(t *testing.T) {
 		if r.Method != http.MethodGet {
 			t.Fatalf("expected GET, got %s", r.Method)
 		}
-		if r.Header.Get("User-Agent") != "gh-analyzer" {
-			t.Fatalf("expected User-Agent gh-analyzer, got %s", r.Header.Get("User-Agent"))
+		if r.Header.Get("User-Agent") != "atlas" {
+			t.Fatalf("expected User-Agent atlas, got %s", r.Header.Get("User-Agent"))
 		}
 
 		w.Header().Set("Content-Type", "application/json")

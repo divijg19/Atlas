@@ -3,8 +3,8 @@ package projection
 import (
 	"testing"
 
-	"github.com/divijg19/GH-Analyzer/internal/evaluation"
-	"github.com/divijg19/GH-Analyzer/internal/index"
+	"github.com/divijg19/Atlas/internal/evaluation"
+	"github.com/divijg19/Atlas/internal/index"
 )
 
 func TestBuildSearchProjection_DeterministicOutput(t *testing.T) {

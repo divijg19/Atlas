@@ -3,18 +3,35 @@ package acquisition
 import (
 	"time"
 
-	"github.com/divijg19/GH-Analyzer/internal/contributions"
-	"github.com/divijg19/GH-Analyzer/internal/profile"
-	"github.com/divijg19/GH-Analyzer/internal/signals"
+	"github.com/divijg19/Atlas/internal/contributions"
+	"github.com/divijg19/Atlas/internal/profile"
+	"github.com/divijg19/Atlas/internal/signals"
 )
 
-// RepoDTO maps a GitHub repository DTO to the domain repository model.
-func NormalizeRepo(dto RepoDTO) signals.Repo {
+// normalizeRepo maps a GitHub repository DTO to the domain repository model.
+func normalizeRepo(dto RepoDTO) signals.Repo {
+	license := ""
+	if dto.License != nil {
+		license = dto.License.Key
+	}
+
 	return signals.Repo{
-		Name:      dto.Name,
-		Fork:      dto.Fork,
-		Size:      dto.Size,
-		UpdatedAt: parseTime(dto.UpdatedAt),
+		Name:          dto.Name,
+		Fork:          dto.Fork,
+		Size:          dto.Size,
+		UpdatedAt:     parseTime(dto.UpdatedAt),
+		Visibility:    dto.Visibility,
+		Archived:      dto.Archived,
+		Template:      dto.IsTemplate,
+		License:       license,
+		Topics:        dto.Topics,
+		Stars:         dto.Stars,
+		Forks:         dto.Forks,
+		Watchers:      dto.Watchers,
+		OpenIssues:    dto.OpenIssues,
+		CreatedAt:     parseTime(dto.CreatedAt),
+		PushedAt:      parseTime(dto.PushedAt),
+		DefaultBranch: dto.DefaultBranch,
 	}
 }
 
@@ -22,7 +39,7 @@ func NormalizeRepo(dto RepoDTO) signals.Repo {
 func NormalizeRepos(dtos []RepoDTO) []signals.Repo {
 	repos := make([]signals.Repo, len(dtos))
 	for i, dto := range dtos {
-		repos[i] = NormalizeRepo(dto)
+		repos[i] = normalizeRepo(dto)
 	}
 	return repos
 }

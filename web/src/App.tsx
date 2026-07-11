@@ -99,13 +99,13 @@ export default function App() {
 	function exportSelectionJSON() {
 		const snapshot = visibleSelected();
 		const content = JSON.stringify(snapshot, null, 2);
-		downloadFile("gh-analyzer-selection.json", content, "application/json");
+		downloadFile("atlas-selection.json", content, "application/json");
 	}
 
 	function exportSelectionMarkdown() {
 		const snapshot = visibleSelected();
 		const lines: string[] = [
-			"# GH Analyzer Selection",
+			"# Atlas Selection",
 			"",
 			"## Candidates",
 			"",
@@ -123,7 +123,7 @@ export default function App() {
 			}
 		});
 
-		downloadFile("gh-analyzer-selection.md", lines.join("\n"), "text/markdown");
+		downloadFile("atlas-selection.md", lines.join("\n"), "text/markdown");
 	}
 
 	function downloadFile(filename: string, content: string, mimeType: string) {
@@ -173,7 +173,7 @@ export default function App() {
 					<div class="flex items-center gap-4">
 						<div>
 							<p class="text-sm font-semibold uppercase tracking-wide text-slate-500">
-								GH Analyzer
+								Atlas
 							</p>
 							<h1 class="text-xl font-semibold text-slate-900">
 								Developer Search

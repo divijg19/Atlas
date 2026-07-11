@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	indexpkg "github.com/divijg19/GH-Analyzer/internal/index"
-	"github.com/divijg19/GH-Analyzer/internal/projection"
+	indexpkg "github.com/divijg19/Atlas/internal/index"
+	"github.com/divijg19/Atlas/internal/projection"
 )
 
 func runInspect(args []string) error {

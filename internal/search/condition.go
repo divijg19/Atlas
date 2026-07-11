@@ -1,3 +1,8 @@
+// Package search defines query parsing and condition matching used by the
+// engine to filter and rank candidates.
+//
+// It owns the declarative query model (conditions, comparators) consumed by
+// internal/engine. It performs no I/O and no scoring. See docs/INTELLIGENCE.md.
 package search
 
 import (
@@ -5,7 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/divijg19/GH-Analyzer/internal/engine"
+	"github.com/divijg19/Atlas/internal/engine"
+	"github.com/divijg19/Atlas/internal/signals"
 )
 
 func ParseCondition(raw string) (engine.Condition, error) {
@@ -63,7 +69,7 @@ func NormalizeThreshold(value float64) (float64, error) {
 
 func IsAllowedSignal(signal string) bool {
 	switch signal {
-	case "consistency", "ownership", "depth", "activity":
+	case signals.SignalConsistency, signals.SignalOwnership, signals.SignalDepth, signals.SignalActivity:
 		return true
 	default:
 		return false

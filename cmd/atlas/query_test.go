@@ -46,7 +46,7 @@ func TestMissingDatasetError(t *testing.T) {
 	if !strings.Contains(message, "dataset not found") {
 		t.Fatalf("expected dataset-not-found message, got %q", message)
 	}
-	if !strings.Contains(message, "Run: gh-analyzer build <usernames>") {
+	if !strings.Contains(message, "Run: atlas build <usernames>") {
 		t.Fatalf("expected actionable guidance, got %q", message)
 	}
 }

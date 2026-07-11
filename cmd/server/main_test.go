@@ -8,8 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/divijg19/GH-Analyzer/internal/engine"
-	indexpkg "github.com/divijg19/GH-Analyzer/internal/index"
+	"github.com/divijg19/Atlas/internal/engine"
+	indexpkg "github.com/divijg19/Atlas/internal/index"
 )
 
 func TestSearchHandlerDatasetContract(t *testing.T) {

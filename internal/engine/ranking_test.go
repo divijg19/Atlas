@@ -4,11 +4,12 @@ import (
 	"math"
 	"testing"
 
-	"github.com/divijg19/GH-Analyzer/internal/index"
+	"github.com/divijg19/Atlas/internal/evaluation"
+	"github.com/divijg19/Atlas/internal/index"
 )
 
 func TestWeightedRankingSkipsMissingSignals(t *testing.T) {
-	ranking := WeightedRanking{}
+	ranking := evaluation.RankingPolicy{}
 	profile := index.Profile{Signals: map[string]float64{
 		"consistency": 0.8,
 		// ownership is intentionally missing

@@ -285,6 +285,72 @@ func TestFromReposSingleRepo(t *testing.T) {
 	}
 }
 
+func TestFromReposMetadataFacts(t *testing.T) {
+	createdOld := time.Date(2018, 1, 2, 0, 0, 0, 0, time.UTC)
+	createdNew := time.Date(2023, 6, 7, 0, 0, 0, 0, time.UTC)
+
+	repos := []Repo{
+		{
+			Fork: false, Size: 100, UpdatedAt: daysAgo(10),
+			Visibility: "public", License: "mit", Topics: []string{"go", "cli"},
+			Stars: 50, Forks: 5, Watchers: 7, OpenIssues: 3,
+			CreatedAt: createdOld,
+		},
+		{
+			Fork: false, Size: 200, UpdatedAt: daysAgo(20),
+			Visibility: "private", Archived: true, Template: true,
+			License: "", Topics: nil,
+			Stars: 0, Forks: 0, Watchers: 0, OpenIssues: 0,
+			CreatedAt: createdNew,
+		},
+		{
+			Fork: true, Size: 10, UpdatedAt: daysAgo(30),
+			Visibility: "public", License: "apache-2.0", Topics: []string{"lib"},
+			Stars: 1, Forks: 0, Watchers: 2, OpenIssues: 1,
+			CreatedAt: createdNew,
+		},
+	}
+
+	f := FromRepos(repos)
+
+	if f.ArchivedRepos != 1 {
+		t.Fatalf("ArchivedRepos: 1 != %d", f.ArchivedRepos)
+	}
+	if f.TemplateRepos != 1 {
+		t.Fatalf("TemplateRepos: 1 != %d", f.TemplateRepos)
+	}
+	if f.PublicRepos != 2 {
+		t.Fatalf("PublicRepos: 2 != %d", f.PublicRepos)
+	}
+	if f.PrivateRepos != 1 {
+		t.Fatalf("PrivateRepos: 1 != %d", f.PrivateRepos)
+	}
+	if f.LicensedRepos != 2 {
+		t.Fatalf("LicensedRepos: 2 != %d", f.LicensedRepos)
+	}
+	if f.TotalStars != 51 {
+		t.Fatalf("TotalStars: 51 != %d", f.TotalStars)
+	}
+	if f.TotalForks != 5 {
+		t.Fatalf("TotalForks: 5 != %d", f.TotalForks)
+	}
+	if f.TotalWatchers != 9 {
+		t.Fatalf("TotalWatchers: 9 != %d", f.TotalWatchers)
+	}
+	if f.TotalOpenIssues != 4 {
+		t.Fatalf("TotalOpenIssues: 4 != %d", f.TotalOpenIssues)
+	}
+	if f.TotalTopics != 3 {
+		t.Fatalf("TotalTopics: 3 != %d", f.TotalTopics)
+	}
+	if !f.OldestCreated.Equal(createdOld) {
+		t.Fatalf("OldestCreated: %v != %v", f.OldestCreated, createdOld)
+	}
+	if !f.NewestCreated.Equal(createdNew) {
+		t.Fatalf("NewestCreated: %v != %v", f.NewestCreated, createdNew)
+	}
+}
+
 func TestFromReposNoOriginalRepos(t *testing.T) {
 	repos := []Repo{
 		{Fork: true, Size: 0, UpdatedAt: daysAgo(5)},

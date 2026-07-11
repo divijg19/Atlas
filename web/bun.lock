@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "gh-analyzer-web",
+      "name": "atlas-web",
       "dependencies": {
         "solid-js": "latest",
       },

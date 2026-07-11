@@ -8,17 +8,17 @@ import (
 )
 
 const (
-	defaultUserAgent = "gh-analyzer"
+	defaultUserAgent = "atlas"
 	defaultTimeout   = 30 * time.Second
 )
 
 var sharedClient = &http.Client{Timeout: defaultTimeout}
 
-func Client() *http.Client {
+func client() *http.Client {
 	return sharedClient
 }
 
-func AuthHeader() (string, string) {
+func authHeader() (string, string) {
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
 		return "", ""
@@ -26,15 +26,17 @@ func AuthHeader() (string, string) {
 	return "Authorization", "Bearer " + token
 }
 
-func SetHeaders(req *http.Request) {
+func setHeaders(req *http.Request) {
 	req.Header.Set("User-Agent", defaultUserAgent)
-	if key, val := AuthHeader(); key != "" {
+	if key, val := authHeader(); key != "" {
 		req.Header.Set(key, val)
 	}
 }
 
+// Do executes an authenticated HTTP request through the shared transport,
+// attaching the Atlas User-Agent and GitHub auth header.
 func Do(ctx context.Context, req *http.Request) (*http.Response, error) {
 	req = req.WithContext(ctx)
-	SetHeaders(req)
-	return Client().Do(req)
+	setHeaders(req)
+	return client().Do(req)
 }

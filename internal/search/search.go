@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/divijg19/GH-Analyzer/internal/engine"
-	"github.com/divijg19/GH-Analyzer/internal/index"
+	"github.com/divijg19/Atlas/internal/engine"
+	"github.com/divijg19/Atlas/internal/index"
 )
 
 type Options struct {
@@ -28,7 +28,7 @@ func Search(idx index.Index, input string, opts ...Options) ([]engine.Result, er
 		return nil, err
 	}
 
-	results := engine.Execute(idx, query, engine.WeightedRanking{})
+	results := engine.Execute(idx, query, nil)
 
 	return results, nil
 }

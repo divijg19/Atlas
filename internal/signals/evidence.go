@@ -20,7 +20,7 @@ func GenerateEvidence(facts Facts, signals Signals) []EvidenceGroup {
 	groups := make([]EvidenceGroup, 0, 4)
 
 	groups = append(groups, EvidenceGroup{
-		Signal: "ownership",
+		Signal: SignalOwnership,
 		Items: []Evidence{
 			{
 				Kind:        "fact",
@@ -36,7 +36,7 @@ func GenerateEvidence(facts Facts, signals Signals) []EvidenceGroup {
 	})
 
 	groups = append(groups, EvidenceGroup{
-		Signal: "consistency",
+		Signal: SignalConsistency,
 		Items: []Evidence{
 			{
 				Kind:        "fact",
@@ -52,7 +52,7 @@ func GenerateEvidence(facts Facts, signals Signals) []EvidenceGroup {
 	})
 
 	groups = append(groups, EvidenceGroup{
-		Signal: "depth",
+		Signal: SignalDepth,
 		Items: []Evidence{
 			{
 				Kind:        "fact",
@@ -73,7 +73,7 @@ func GenerateEvidence(facts Facts, signals Signals) []EvidenceGroup {
 	})
 
 	groups = append(groups, EvidenceGroup{
-		Signal: "activity",
+		Signal: SignalActivity,
 		Items: []Evidence{
 			{
 				Kind:        "fact",

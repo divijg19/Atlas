@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/divijg19/GH-Analyzer/internal/acquisition"
+	"github.com/divijg19/Atlas/internal/acquisition"
 )
 
 func newClient(baseURL string) *acquisition.Client {

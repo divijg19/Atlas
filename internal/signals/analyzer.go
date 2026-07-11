@@ -1,3 +1,10 @@
+// Package signals defines the domain observations, facts, and indicators that
+// quantify a GitHub user's repository portfolio.
+//
+// It owns the normalized repository observation (Repo / Vestige), the
+// deterministic Facts aggregates (FromRepos), and the measured Indicators
+// (Signals, RawScore). It owns no overall scoring, confidence, or ranking —
+// those belong to internal/evaluation. See docs/INTELLIGENCE.md.
 package signals
 
 import (
@@ -20,19 +27,28 @@ const (
 	activityLowValue      = 0.4
 	activityStaleValue    = 0.1
 
-	scoreScale        = 100.0
-	minSignalValue    = 0.0
-	maxSignalValue    = 1.0
-	ownershipWeight   = 0.3
-	consistencyWeight = 0.4
-	depthWeight       = 0.3
+	scoreScale     = 100.0
+	minSignalValue = 0.0
+	maxSignalValue = 1.0
 )
 
 type Repo struct {
-	Name      string    `json:"name"`
-	Fork      bool      `json:"fork"`
-	Size      int       `json:"size"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Name          string    `json:"name"`
+	Fork          bool      `json:"fork"`
+	Size          int       `json:"size"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	Visibility    string    `json:"visibility"`
+	Archived      bool      `json:"archived"`
+	Template      bool      `json:"template"`
+	License       string    `json:"license"`
+	Topics        []string  `json:"topics"`
+	Stars         int       `json:"stargazers_count"`
+	Forks         int       `json:"forks_count"`
+	Watchers      int       `json:"watchers_count"`
+	OpenIssues    int       `json:"open_issues_count"`
+	CreatedAt     time.Time `json:"created_at"`
+	PushedAt      time.Time `json:"pushed_at"`
+	DefaultBranch string    `json:"default_branch"`
 }
 
 type Signals struct {
@@ -46,15 +62,6 @@ type RawScore struct {
 	Ownership   int `json:"ownership"`
 	Consistency int `json:"consistency"`
 	Depth       int `json:"depth"`
-}
-
-type GitHubAPIError struct {
-	StatusCode int
-	Message    string
-}
-
-func (e GitHubAPIError) Error() string {
-	return e.Message
 }
 
 func ExtractSignals(repos []Repo) Signals {

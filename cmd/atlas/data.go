@@ -4,8 +4,8 @@ import (
 	"errors"
 	"os"
 
-	indexpkg "github.com/divijg19/GH-Analyzer/internal/index"
-	"github.com/divijg19/GH-Analyzer/internal/storage"
+	indexpkg "github.com/divijg19/Atlas/internal/index"
+	"github.com/divijg19/Atlas/internal/storage"
 )
 
 func loadDataset(path string) (indexpkg.Index, error) {

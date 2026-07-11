@@ -3,7 +3,8 @@ package engine
 import (
 	"sort"
 
-	idx "github.com/divijg19/GH-Analyzer/internal/index"
+	"github.com/divijg19/Atlas/internal/evaluation"
+	idx "github.com/divijg19/Atlas/internal/index"
 )
 
 type Result struct {
@@ -18,7 +19,7 @@ type Engine struct {
 
 func New(ranking RankingStrategy) *Engine {
 	if ranking == nil {
-		ranking = WeightedRanking{}
+		ranking = evaluation.RankingPolicy{}
 	}
 
 	return &Engine{ranking: ranking}
@@ -30,7 +31,7 @@ func (e *Engine) Query(index idx.Index, query Query) []Result {
 
 func Execute(index idx.Index, query Query, ranking RankingStrategy) []Result {
 	if ranking == nil {
-		ranking = WeightedRanking{}
+		ranking = evaluation.RankingPolicy{}
 	}
 
 	profiles := index.All()
