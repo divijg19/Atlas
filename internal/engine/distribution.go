@@ -1,10 +1,17 @@
+// Package engine is the orchestration layer for search.
+//
+// It owns query parsing, candidate filtering, condition matching, and result
+// ordering via RankingStrategy. It never interprets scores or confidence
+// (internal/evaluation) and never renders output (internal/projection).
+// See docs/INTELLIGENCE.md.
 package engine
 
 import (
 	"math"
 	"sort"
 
-	"github.com/divijg19/GH-Analyzer/internal/index"
+	"github.com/divijg19/Atlas/internal/evaluation"
+	"github.com/divijg19/Atlas/internal/index"
 )
 
 const minCalibrationDatasetSize = 10
@@ -15,7 +22,7 @@ type Distribution struct {
 
 func BuildDistribution(profiles []index.Profile, ranking RankingStrategy) Distribution {
 	if ranking == nil {
-		ranking = WeightedRanking{}
+		ranking = evaluation.RankingPolicy{}
 	}
 
 	overall := make([]float64, 0, len(profiles))

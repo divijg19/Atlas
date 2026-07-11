@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/divijg19/GH-Analyzer/internal/engine"
-	"github.com/divijg19/GH-Analyzer/internal/presets"
+	"github.com/divijg19/Atlas/internal/engine"
+	"github.com/divijg19/Atlas/internal/presets"
+	"github.com/divijg19/Atlas/internal/signals"
 )
 
 func MapIntent(input string) (engine.Query, error) {
@@ -103,19 +104,19 @@ func parseInput(input string) ([]engine.Condition, []engine.Condition, error) {
 func keywordConditionsForToken(token string) ([]engine.Condition, bool) {
 	switch strings.ToLower(strings.TrimSpace(token)) {
 	case "backend":
-		return []engine.Condition{{Signal: "depth", Operator: ">=", Value: 0.6}}, true
+		return []engine.Condition{{Signal: signals.SignalDepth, Operator: ">=", Value: 0.6}}, true
 	case "frontend":
-		return []engine.Condition{{Signal: "depth", Operator: ">=", Value: 0.5}}, true
+		return []engine.Condition{{Signal: signals.SignalDepth, Operator: ">=", Value: 0.5}}, true
 	case "systems":
-		return []engine.Condition{{Signal: "depth", Operator: ">=", Value: 0.8}}, true
+		return []engine.Condition{{Signal: signals.SignalDepth, Operator: ">=", Value: 0.8}}, true
 	case "consistent":
-		return []engine.Condition{{Signal: "consistency", Operator: ">=", Value: 0.7}}, true
+		return []engine.Condition{{Signal: signals.SignalConsistency, Operator: ">=", Value: 0.7}}, true
 	case "reliable":
-		return []engine.Condition{{Signal: "consistency", Operator: ">=", Value: 0.8}, {Signal: "activity", Operator: ">=", Value: 1.0}}, true
+		return []engine.Condition{{Signal: signals.SignalConsistency, Operator: ">=", Value: 0.8}, {Signal: signals.SignalActivity, Operator: ">=", Value: 1.0}}, true
 	case "active":
-		return []engine.Condition{{Signal: "activity", Operator: ">=", Value: 1.0}}, true
+		return []engine.Condition{{Signal: signals.SignalActivity, Operator: ">=", Value: 1.0}}, true
 	case "beginner":
-		return []engine.Condition{{Signal: "depth", Operator: "<=", Value: 0.4}}, true
+		return []engine.Condition{{Signal: signals.SignalDepth, Operator: "<=", Value: 0.4}}, true
 	case "strong":
 		query, err := queryFromPreset("strong")
 		if err != nil {

@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/divijg19/GH-Analyzer/internal/index"
-	"github.com/divijg19/GH-Analyzer/internal/signals"
+	"github.com/divijg19/Atlas/internal/index"
+	"github.com/divijg19/Atlas/internal/signals"
 )
 
 func TestExplainIncludesValuesAndDeduplicates(t *testing.T) {

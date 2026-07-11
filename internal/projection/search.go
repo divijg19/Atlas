@@ -1,8 +1,8 @@
 package projection
 
 import (
-	"github.com/divijg19/GH-Analyzer/internal/evaluation"
-	"github.com/divijg19/GH-Analyzer/internal/index"
+	"github.com/divijg19/Atlas/internal/evaluation"
+	"github.com/divijg19/Atlas/internal/index"
 )
 
 // SearchProjection is the canonical search presentation model.

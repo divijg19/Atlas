@@ -3,7 +3,7 @@ package engine
 import (
 	"testing"
 
-	"github.com/divijg19/GH-Analyzer/internal/index"
+	"github.com/divijg19/Atlas/internal/index"
 )
 
 func TestMatchOperators(t *testing.T) {

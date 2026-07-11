@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	indexpkg "github.com/divijg19/GH-Analyzer/internal/index"
-	"github.com/divijg19/GH-Analyzer/internal/storage"
+	indexpkg "github.com/divijg19/Atlas/internal/index"
+	"github.com/divijg19/Atlas/internal/storage"
 )
 
 func runBuild(args []string) error {

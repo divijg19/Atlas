@@ -1,10 +1,10 @@
 package projection
 
 import (
-	"github.com/divijg19/GH-Analyzer/internal/contributions"
-	"github.com/divijg19/GH-Analyzer/internal/index"
-	"github.com/divijg19/GH-Analyzer/internal/profile"
-	"github.com/divijg19/GH-Analyzer/internal/signals"
+	"github.com/divijg19/Atlas/internal/contributions"
+	"github.com/divijg19/Atlas/internal/index"
+	"github.com/divijg19/Atlas/internal/profile"
+	"github.com/divijg19/Atlas/internal/signals"
 )
 
 // InspectProjection provides a raw data view for inspection and debugging.
@@ -24,12 +24,7 @@ func BuildInspectProjection(p index.Profile) InspectProjection {
 	var evidence []signals.EvidenceGroup
 
 	if p.Facts != nil {
-		sig := signals.Signals{
-			Ownership:   p.Signals["ownership"],
-			Consistency: p.Signals["consistency"],
-			Depth:       p.Signals["depth"],
-			Activity:    p.Signals["activity"],
-		}
+		sig := signals.FromMap(p.Signals)
 		evidence = signals.GenerateEvidence(*p.Facts, sig)
 	}
 

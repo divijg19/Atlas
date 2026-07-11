@@ -66,10 +66,10 @@ func runCLI(args []string) error {
 
 func missingDatasetError(path string) error {
 	if path == defaultDatasetPath {
-		return fmt.Errorf("dataset not found\nRun: gh-analyzer build <usernames>")
+		return fmt.Errorf("dataset not found\nRun: atlas build <usernames>")
 	}
 
-	return fmt.Errorf("dataset not found: %s\nRun: gh-analyzer build <usernames> --out %s", path, path)
+	return fmt.Errorf("dataset not found: %s\nRun: atlas build <usernames> --out %s", path, path)
 }
 
 func parseFlagsOrHelp(fs *flag.FlagSet, args []string) (bool, error) {

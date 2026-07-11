@@ -5,7 +5,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/divijg19/GH-Analyzer/internal/index"
+	"github.com/divijg19/Atlas/internal/evaluation"
+	"github.com/divijg19/Atlas/internal/index"
 )
 
 func TestBuildDistributionSorted(t *testing.T) {
@@ -79,7 +80,7 @@ func TestExecuteCalibrationStabilityPreservesOrdering(t *testing.T) {
 		{Username: "u10", Signals: map[string]float64{"consistency": 1.00, "ownership": 1.00, "depth": 1.00}},
 	}}
 
-	ranking := WeightedRanking{}
+	ranking := evaluation.RankingPolicy{}
 	results := Execute(idx, Query{}, ranking)
 
 	type raw struct {
@@ -116,7 +117,7 @@ func TestExecuteSmallDatasetReturnsRawScores(t *testing.T) {
 		{Username: "c", Signals: map[string]float64{"consistency": 0.1, "ownership": 0.3, "depth": 0.2}},
 	}}
 
-	ranking := WeightedRanking{}
+	ranking := evaluation.RankingPolicy{}
 	results := Execute(idx, Query{}, ranking)
 
 	for _, result := range results {

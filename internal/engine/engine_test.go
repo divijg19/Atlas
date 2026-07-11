@@ -3,7 +3,8 @@ package engine
 import (
 	"testing"
 
-	"github.com/divijg19/GH-Analyzer/internal/index"
+	"github.com/divijg19/Atlas/internal/evaluation"
+	"github.com/divijg19/Atlas/internal/index"
 )
 
 func TestExecuteFilteringAndRanking(t *testing.T) {
@@ -17,7 +18,7 @@ func TestExecuteFilteringAndRanking(t *testing.T) {
 		Conditions: []Condition{{Signal: "consistency", Operator: ">=", Value: 0.7}},
 	}
 
-	results := Execute(idx, query, WeightedRanking{})
+	results := Execute(idx, query, evaluation.RankingPolicy{})
 
 	if len(results) != 2 {
 		t.Fatalf("expected 2 results, got %d", len(results))
@@ -37,7 +38,7 @@ func TestExecuteTieBreakByUsername(t *testing.T) {
 		{Username: "amy", Signals: map[string]float64{"consistency": 0.5, "ownership": 0.5, "depth": 0.5}},
 	}}
 
-	results := Execute(idx, Query{}, WeightedRanking{})
+	results := Execute(idx, Query{}, evaluation.RankingPolicy{})
 
 	if len(results) != 2 {
 		t.Fatalf("expected 2 results, got %d", len(results))
@@ -55,7 +56,7 @@ func TestExecuteLimit(t *testing.T) {
 		{Username: "c", Signals: map[string]float64{"consistency": 0.7, "ownership": 0.7, "depth": 0.7}},
 	}}
 
-	results := Execute(idx, Query{Limit: 2}, WeightedRanking{})
+	results := Execute(idx, Query{Limit: 2}, evaluation.RankingPolicy{})
 	if len(results) != 2 {
 		t.Fatalf("expected 2 results, got %d", len(results))
 	}

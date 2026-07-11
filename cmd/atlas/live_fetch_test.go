@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/divijg19/GH-Analyzer/internal/acquisition"
-	"github.com/divijg19/GH-Analyzer/internal/live"
-	"github.com/divijg19/GH-Analyzer/internal/signals"
+	"github.com/divijg19/Atlas/internal/acquisition"
+	"github.com/divijg19/Atlas/internal/live"
+	"github.com/divijg19/Atlas/internal/signals"
 )
 
 // mockAcquisitionClient is a test seam for the live package. It returns canned

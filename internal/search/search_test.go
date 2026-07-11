@@ -4,7 +4,7 @@ import (
 	"math"
 	"testing"
 
-	indexpkg "github.com/divijg19/GH-Analyzer/internal/index"
+	indexpkg "github.com/divijg19/Atlas/internal/index"
 )
 
 func TestSearchKeywordMapping(t *testing.T) {

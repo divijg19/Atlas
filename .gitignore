@@ -2,7 +2,7 @@
 dataset.json
 
 # Binaries
-gh-analyzer
+atlas
 
 # Coverage
 coverage.out

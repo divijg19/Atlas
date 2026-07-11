@@ -7,17 +7,35 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/divijg19/GH-Analyzer/internal/signals"
+	"github.com/divijg19/Atlas/internal/signals"
 )
+
+// LicenseRef is the minimal license reference returned by the GitHub REST API.
+type LicenseRef struct {
+	Key  string `json:"key"`
+	Name string `json:"name"`
+}
 
 // RepoDTO mirrors a repository object from the GitHub REST API. Field names and
 // types follow GitHub's schema; timestamps remain strings and are parsed during
 // normalization.
 type RepoDTO struct {
-	Name      string `json:"name"`
-	Fork      bool   `json:"fork"`
-	Size      int    `json:"size"`
-	UpdatedAt string `json:"updated_at"`
+	Name          string      `json:"name"`
+	Fork          bool        `json:"fork"`
+	Size          int         `json:"size"`
+	UpdatedAt     string      `json:"updated_at"`
+	Visibility    string      `json:"visibility"`
+	Archived      bool        `json:"archived"`
+	IsTemplate    bool        `json:"is_template"`
+	License       *LicenseRef `json:"license"`
+	Topics        []string    `json:"topics"`
+	Stars         int         `json:"stargazers_count"`
+	Forks         int         `json:"forks_count"`
+	Watchers      int         `json:"watchers_count"`
+	OpenIssues    int         `json:"open_issues_count"`
+	CreatedAt     string      `json:"created_at"`
+	PushedAt      string      `json:"pushed_at"`
+	DefaultBranch string      `json:"default_branch"`
 }
 
 // FetchRepos retrieves a user's public repositories from the GitHub REST API.

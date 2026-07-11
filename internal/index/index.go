@@ -1,9 +1,9 @@
 package index
 
 import (
-	"github.com/divijg19/GH-Analyzer/internal/contributions"
-	"github.com/divijg19/GH-Analyzer/internal/profile"
-	"github.com/divijg19/GH-Analyzer/internal/signals"
+	"github.com/divijg19/Atlas/internal/contributions"
+	"github.com/divijg19/Atlas/internal/profile"
+	"github.com/divijg19/Atlas/internal/signals"
 )
 
 type Profile struct {

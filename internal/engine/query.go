@@ -3,7 +3,7 @@ package engine
 import (
 	"strings"
 
-	"github.com/divijg19/GH-Analyzer/internal/index"
+	"github.com/divijg19/Atlas/internal/index"
 )
 
 type Query struct {

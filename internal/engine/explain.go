@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/divijg19/GH-Analyzer/internal/index"
-	"github.com/divijg19/GH-Analyzer/internal/signals"
+	"github.com/divijg19/Atlas/internal/index"
+	"github.com/divijg19/Atlas/internal/signals"
 )
 
 func Explain(p index.Profile, q Query) []string {
@@ -21,12 +21,7 @@ func Explain(p index.Profile, q Query) []string {
 }
 
 func explainWithEvidence(p index.Profile, q Query) []string {
-	sig := signals.Signals{
-		Ownership:   p.Signals["ownership"],
-		Consistency: p.Signals["consistency"],
-		Depth:       p.Signals["depth"],
-		Activity:    p.Signals["activity"],
-	}
+	sig := signals.FromMap(p.Signals)
 
 	allEvidence := signals.GenerateEvidence(*p.Facts, sig)
 
@@ -87,13 +82,13 @@ func explainFromConditions(p index.Profile, q Query) []string {
 
 func reasonForSignal(signal string) string {
 	switch strings.ToLower(strings.TrimSpace(signal)) {
-	case "consistency":
+	case signals.SignalConsistency:
 		return "High consistency"
-	case "ownership":
+	case signals.SignalOwnership:
 		return "Strong ownership"
-	case "depth":
+	case signals.SignalDepth:
 		return "Deep project work"
-	case "activity":
+	case signals.SignalActivity:
 		return "Recently active"
 	default:
 		return ""
